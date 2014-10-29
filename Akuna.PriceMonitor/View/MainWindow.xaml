@@ -1,0 +1,93 @@
+﻿<Window
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Akuna.PriceMonitor.View.MainWindow"
+        Title="MainWindow" Height="350" Width="593.657">
+    <Window.Resources>
+        <SolidColorBrush x:Key="CustomBlue" Color="#365FB7" />
+        <SolidColorBrush x:Key="CustomRed" Color="#D3151B" />
+        <SolidColorBrush x:Key="CustomGrey" Color="#ABABAB" />
+
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </Window.Resources>
+    <Grid>
+        <DataGrid x:Name="datagrid"  HorizontalAlignment="Left" IsReadOnly="True" Margin="10,85,0,0" AutoGenerateColumns="False" VerticalAlignment="Top" Height="225" Width="386" ItemsSource="{Binding Instruments}">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Instrument" Binding="{Binding InstrumentID}"/>
+                <DataGridTextColumn Header="Bid Price" Binding="{Binding ObsBidPx}">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="{x:Type TextBlock}">
+                            <Setter Property="Background" Value="White" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding DeltaBidPx}" Value="1">
+                                    <Setter Property="Background" Value="{DynamicResource CustomBlue}" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding DeltaBidPx}" Value="-1">
+                                    <Setter Property="Background" Value="{DynamicResource CustomRed}" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding DeltaBidPx}" Value="0">
+                                    <Setter Property="Background" Value="White" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTextColumn Header="Bid qty" Binding="{Binding ObsBidQty}"/>
+                <DataGridTextColumn Header="Ask Price" Binding="{Binding ObsAskPx}">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="{x:Type TextBlock}">
+                            <Setter Property="Background" Value="White" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding DeltaAskPx}" Value="1">
+                                    <Setter Property="Background" Value="{DynamicResource CustomBlue}" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding DeltaAskPx}" Value="-1">
+                                    <Setter Property="Background" Value="{DynamicResource CustomRed}" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding DeltaAskPx}" Value="0">
+                                    <Setter Property="Background" Value="White" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTextColumn Header="Ask qty" Binding="{Binding ObsAskQty}"/>
+                <DataGridTextColumn Header="Volume" Binding="{Binding ObsVolume}" />
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <Label Content="Price Monitor" HorizontalContentAlignment="Center" FontSize="16" VerticalAlignment="Top" HorizontalAlignment="Center" Width="180" Margin="118,20,288,0"/>
+        <GroupBox Header="Parameter" HorizontalAlignment="Left" Margin="416,10,0,0" VerticalAlignment="Top" Height="128" Width="160">
+            <StackPanel>
+                <DockPanel>
+                    <Label Content="Refresh Period:"/>
+                    <Label Content="{Binding ObsPeriod}" />
+                </DockPanel>
+                <Slider Minimum="1500000" Maximum="20000000" Value="{Binding Period, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
+                <ToggleButton Content="Start/Stop" Margin="10" IsChecked="{Binding IsStarted, Mode=TwoWay}"/>
+                <CheckBox Name="testMode" Content="Test Mode" IsChecked="{Binding TestModeActivated, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+        </GroupBox>
+        <GroupBox Header="Deal Booker" Visibility="{Binding TestModeActivated, Converter={StaticResource BoolToVis}}" HorizontalAlignment="Left" Margin="416,143,0,0" VerticalAlignment="Top" Height="167" Width="160">
+            <StackPanel>
+                <DockPanel>
+                    <Label Content="Instrument Nb :" Margin="5,10,0,5"/>
+                    <TextBox Margin="5" Text="{Binding SelectedInstrument}"/>
+                </DockPanel>
+                <DockPanel>
+                    <RadioButton Content="Bid" Width="59" IsChecked="{Binding OrderSide}"/>
+                    <RadioButton Content="Ask"/>
+                </DockPanel>
+                <DockPanel>
+                    <Label Content="Price:"  Width="60"/>
+                    <TextBox Margin="5,0,5,0" Text="{Binding OrderPrice}"/>
+                </DockPanel>
+                <DockPanel>
+                    <Label Content="Quantity"  Width="60"/>
+                    <TextBox Margin="5,0,5,0" Text="{Binding OrderQuantity}"/>
+                </DockPanel>
+                <Button Content="Send" Margin="5" Command="{Binding Path=SendCommand}"/>
+            </StackPanel>
+        </GroupBox>
+    </Grid>
+</Window>
