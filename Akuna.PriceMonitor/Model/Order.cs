@@ -5,11 +5,16 @@ using System.Text;
 
 namespace Akuna.PriceMonitor.Model
 {
-    class Order
+    internal sealed class Order
     {
-        #region parameters
-        const bool bid = true;
-        const bool ask = false;
+        #region Fields
+
+        private const bool bid = true;
+        private const bool ask = false;
+
+        #endregion
+
+        #region Properties
         public double Price { get; set; }
         public enum SideType { bid, ask };
         public SideType Side { get; set; }

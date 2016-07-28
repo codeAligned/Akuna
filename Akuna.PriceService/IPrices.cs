@@ -8,9 +8,9 @@ namespace Akuna.PriceService
     public interface IPrices
     {
         double BidPx { get; }
-        uint BidQty { get; }
+        uint   BidQty { get; }
         double AskPx { get; }
-        uint AskQty { get; }
-        uint Volume { get; }
+        uint   AskQty { get; }
+        uint   Volume { get; }
     }
 }

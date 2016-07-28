@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Timers;
 
 namespace Akuna.PriceService
@@ -14,6 +11,19 @@ namespace Akuna.PriceService
         private readonly Prices[] _prices;
         private readonly Random _randGenerator;
         private readonly Timer _timer;
+
+        public bool IsStarted
+        {
+            get { return _timer.Enabled; }
+        }
+
+        public double Interval
+        {
+            get { return _timer.Interval; }
+            set { _timer.Interval = value; }
+        }
+
+        public event PriceUpdateDelegate NewPricesArrived;
 
         public RandomWalkPriceService()
         {
@@ -54,7 +64,6 @@ namespace Akuna.PriceService
             _timer.Start();
         }
 
-
         private void DispatchPrices()
         {
             if (NewPricesArrived == null)
@@ -64,12 +73,10 @@ namespace Akuna.PriceService
                 NewPricesArrived(this, (uint)i, _prices[i]);
         }
 
-
         private void OnTimerHandler(object source, ElapsedEventArgs e)
         {
             UpdatePrices();
         }
-
 
         private void UpdatePrices()
         {
@@ -90,8 +97,7 @@ namespace Akuna.PriceService
                 prices.AskQty = (uint)_randGenerator.Next(1, 10) * 10;
                 prices.Volume += (uint)_randGenerator.Next(1, 10) * 10;
 
-                if (NewPricesArrived != null)
-                    NewPricesArrived(this, (uint)i, prices);
+                NewPricesArrived?.Invoke(this, (uint)i, prices);
             }
         }
 
@@ -105,18 +111,5 @@ namespace Akuna.PriceService
                 _timer.Stop();
             }
         }
-        
-        public bool IsStarted
-        {
-            get { return _timer.Enabled; }
-        }
-
-        public double Interval
-        {
-            get { return _timer.Interval; }
-            set { _timer.Interval = value; }
-        }
-
-        public event PriceUpdateDelegate NewPricesArrived;
     }
 }

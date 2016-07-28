@@ -1,117 +1,115 @@
 ﻿using Akuna.PriceMonitor.Model;
+using Akuna.PriceMonitor.Command;
 using Akuna.PriceService;
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.ComponentModel;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
 
+
 namespace Akuna.PriceMonitor.ViewModel
 {
-    public class MonitorViewModel : INotifyPropertyChanged
+    internal sealed class MonitorViewModel : INotifyPropertyChanged
     {
-        #region Parameters
+        #region Fieds
 
-        private const bool bid = true;
-        private const bool ask = false;
+        private const bool Bid = true;
+        private const bool Ask = false;
 
-        private int collectionSize = 10;
-        private RandomWalkPriceService priceService;
-        private int period = 1500000;
-        public string ObsPeriod { get { return (period / 10000) + "ms"; } }
-        private TimeSpan refreshTime;
-        public Instrument[] Instruments { get; set; }
-        bool isStarted;
-        bool testModeActivated = false;
-        string selectedInstrument;
-        bool orderSide = bid;
-        string orderPrice;
-        string orderQuantity;
-        private ICommand sendCommand;
+        private readonly int _collectionSize = 10;
+        private int _period = 1500000;
+
+        private bool _isStarted;
+        private bool _testModeActivated = false;
+        private bool _orderSide = Bid;
+        private string _selectedInstrument;
+        private string _orderPrice;
+        private string _orderQuantity;
+        private ICommand _sendCommand;
+        private RandomWalkPriceService _priceService;
+        private TimeSpan _refreshTime;
 
         #endregion
 
-        #region Assessors
+        #region Properties
+
+        public Instrument[] Instruments { get; set; }
+        public string ObsPeriod { get { return $"{_period / 10000}ms"; } }
         public bool IsStarted
         {
-            private get { return isStarted; }
+            private get { return _isStarted; }
             set
             {
-                isStarted = value;
-                if (isStarted)
+                _isStarted = value;
+                if (_isStarted)
                     StartPriceService();
                 else
                     StopPriceService();
-                OnPropertyChanged("IsStarted");
+                OnPropertyChanged(nameof(IsStarted));
             }
         }
 
         public int Period
         {
-            get { return period; }
+            get { return _period; }
             set
             {
-                period = value;
+                _period = value;
                 UpdateRefreshPeriod();
-                OnPropertyChanged("Period");
+                OnPropertyChanged(nameof(Period));
                 OnPropertyChanged("ObsPeriod");
             }
         }
 
         public bool TestModeActivated
         {
-            get { return testModeActivated; }
+            get { return _testModeActivated; }
             set
             {
-                testModeActivated = value;
+                _testModeActivated = value;
                 InitializeTestMode();
-                OnPropertyChanged("TestModeActivated");
+                OnPropertyChanged(nameof(TestModeActivated));
             }
         }
 
         public string SelectedInstrument
         {
-            get { return selectedInstrument; }
+            get { return _selectedInstrument; }
             set
             {
-                selectedInstrument = value;
-                OnPropertyChanged("SelectedInstrument");
+                _selectedInstrument = value;
+                OnPropertyChanged(nameof(SelectedInstrument));
             }
         }
 
         public bool OrderSide
         {
-            get { return orderSide; }
+            get { return _orderSide; }
             set
             {
-                orderSide = value;
-                OnPropertyChanged("OrderSide");
+                _orderSide = value;
+                OnPropertyChanged(nameof(OrderSide));
             }
         }
 
         public string OrderPrice
         {
-            get { return orderPrice; }
+            get { return _orderPrice; }
             set
             {
-                orderPrice = value;
-                OnPropertyChanged("OrderPrice");
+                _orderPrice = value;
+                OnPropertyChanged(nameof(OrderPrice));
             }
         }
 
         public string OrderQuantity
         {
-            get { return orderQuantity; }
+            get { return _orderQuantity; }
             set
             {
-                orderQuantity = value;
-                OnPropertyChanged("OrderQuantity");
+                _orderQuantity = value;
+                OnPropertyChanged(nameof(OrderQuantity));
             }
         }
 
@@ -119,11 +117,11 @@ namespace Akuna.PriceMonitor.ViewModel
         {
             get
             {
-                return sendCommand;
+                return _sendCommand;
             }
             set
             {
-                sendCommand = value;
+                _sendCommand = value;
             }
         }
         #endregion
@@ -132,32 +130,32 @@ namespace Akuna.PriceMonitor.ViewModel
         public MonitorViewModel()
         {
             SendCommand = new RelayCommand(new Action<object>(SendOrder));
-            refreshTime = new TimeSpan(Period);
+            _refreshTime = new TimeSpan(Period);
             Application.Current.MainWindow.Closing += new CancelEventHandler(CloseApp);
-            Instruments = new Instrument[collectionSize];
+            Instruments = new Instrument[_collectionSize];
             InitializeCollection();
-            priceService = new RandomWalkPriceService();
-            priceService.NewPricesArrived += PriceUpdateHandler;
+            _priceService = new RandomWalkPriceService();
+            _priceService.NewPricesArrived += PriceUpdateHandler;
         }
         #endregion
 
         public void UpdateRefreshPeriod()
         {
-            refreshTime = new TimeSpan(Period);
-            for (int i = 0; i < collectionSize; i++)
-                Instruments[i].RefreshPeriod = refreshTime;
+            _refreshTime = new TimeSpan(Period);
+            for (int i = 0; i < _collectionSize; i++)
+                Instruments[i].RefreshPeriod = _refreshTime;
         }
 
         private void CleanCollection()
         {
-            for (int i = 0; i < collectionSize; i++)
+            for (int i = 0; i < _collectionSize; i++)
                 Instruments[i].ResetData();
         }
 
         private void InitializeCollection()
         {
-            for (int i = 0; i < collectionSize; i++)
-                Instruments[i] = new Instrument(i, refreshTime);
+            for (int i = 0; i < _collectionSize; i++)
+                Instruments[i] = new Instrument(i, _refreshTime);
         }
 
         private void InitializeTestMode()
@@ -175,13 +173,13 @@ namespace Akuna.PriceMonitor.ViewModel
         internal void StartPriceService()
         {
             if (!TestModeActivated)
-                priceService.Start();
+                _priceService.Start();
         }
 
         internal void StopPriceService()
         {
-            if (priceService.IsStarted)
-                priceService.Stop();
+            if (_priceService.IsStarted)
+                _priceService.Stop();
         }
 
         internal void CloseApp(object sender, CancelEventArgs e)
@@ -202,13 +200,13 @@ namespace Akuna.PriceMonitor.ViewModel
         {
             if (string.IsNullOrEmpty(SelectedInstrument))
             {
-                MessageBox.Show("Please define a Instrument Nb from: 0 to: " + collectionSize);
+                MessageBox.Show($"Please define a Instrument Nb from: 0 to: {_collectionSize}");
                 return;
             }
             int instrumentID;
-            if (!int.TryParse(SelectedInstrument, out instrumentID) || instrumentID > collectionSize - 1)
+            if (!int.TryParse(SelectedInstrument, out instrumentID) || instrumentID > _collectionSize - 1)
             {
-                MessageBox.Show("Instrument nb must be a number inferior to: " + collectionSize);
+                MessageBox.Show($"Instrument nb must be a number inferior to: {_collectionSize}");
                 return;
             }
 
@@ -228,7 +226,7 @@ namespace Akuna.PriceMonitor.ViewModel
 
             Order myOrder = new Order(price, quantity, OrderSide);
 
-            System.Windows.Application.Current.Dispatcher.Invoke(DispatcherPriority.Normal, (Action)delegate()
+            Application.Current.Dispatcher.Invoke(DispatcherPriority.Normal, (Action)delegate()
             {
                 Instruments[instrumentID].UpdatePrices(myOrder);
             });
@@ -238,38 +236,9 @@ namespace Akuna.PriceMonitor.ViewModel
         public event PropertyChangedEventHandler PropertyChanged;
         private void OnPropertyChanged(string propertyName)
         {
-            if (PropertyChanged != null)
-            {
-                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-            }
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
         #endregion
 
-    }
-
-    class RelayCommand : ICommand
-    {
-        private Action<object> _action;
-
-        public RelayCommand(Action<object> action)
-        {
-            _action = action;
-        }
-
-        #region ICommand Members
-
-        public bool CanExecute(object parameter)
-        {
-            return true;
-        }
-
-        public event EventHandler CanExecuteChanged;
-
-        public void Execute(object parameter)
-        {
-            _action(parameter);
-        }
-
-        #endregion
     }
 }

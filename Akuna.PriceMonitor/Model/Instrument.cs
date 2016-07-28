@@ -1,31 +1,29 @@
 ﻿using Akuna.PriceService;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
 
 namespace Akuna.PriceMonitor.Model
 {
-    public class Instrument : IPrices, INotifyPropertyChanged
+    internal sealed class Instrument : IPrices, INotifyPropertyChanged
     {
-        #region Parameters
-        private string instrumentID;
-        private double bidPx;
-        private uint bidQty;
-        private double askPx;
-        private uint askQty;
-        private uint volume;
+        #region Fields
 
-        private Stopwatch stopwatch;
-        internal TimeSpan RefreshPeriod { get; set; }
+        private string _instrumentId;
+        private double _bidPx;
+        private uint _bidQty;
+        private double _askPx;
+        private uint _askQty;
+        private uint _volume;
+        private Stopwatch _stopwatch;
 
-        public int DeltaBidPx { get; set; }
-        public int DeltaAskPx { get; set; }
         #endregion
 
-        #region Accessors
+        #region Properties
+
+        public TimeSpan RefreshPeriod { get; set; }
+        public int DeltaBidPx { get; set; }
+        public int DeltaAskPx { get; set; }
 
         public string ObsBidPx { get { return BidPx.ToString("N2"); } }
         public string ObsAskPx { get { return AskPx.ToString("N2"); } }
@@ -35,21 +33,20 @@ namespace Akuna.PriceMonitor.Model
 
         public string InstrumentID
         {
-            get { return instrumentID; }
+            get { return _instrumentId; }
             set
             {
-                instrumentID = value;
+                _instrumentId = value;
                 OnPropertyChanged("InstrumentID");
             }
         }
 
-
         public double BidPx
         {
-            get { return bidPx; }
+            get { return _bidPx; }
             set
             {
-                bidPx = value;
+                _bidPx = value;
                 OnPropertyChanged("ObsBidPx");
                 OnPropertyChanged("DeltaBidPx");
             }
@@ -57,20 +54,20 @@ namespace Akuna.PriceMonitor.Model
 
         public uint BidQty
         {
-            get { return bidQty; }
+            get { return _bidQty; }
             set
             {
-                bidQty = value;
+                _bidQty = value;
                 OnPropertyChanged("ObsBidQty");
             }
         }
 
         public double AskPx
         {
-            get { return askPx; }
+            get { return _askPx; }
             set
             {
-                askPx = value;
+                _askPx = value;
                 OnPropertyChanged("ObsAskPx");
                 OnPropertyChanged("DeltaAskPx");
             }
@@ -78,20 +75,20 @@ namespace Akuna.PriceMonitor.Model
 
         public uint AskQty
         {
-            get { return askQty; }
+            get { return _askQty; }
             set
             {
-                askQty = value;
+                _askQty = value;
                 OnPropertyChanged("ObsAskQty");
             }
         }
 
         public uint Volume
         {
-            get { return volume; }
+            get { return _volume; }
             set
             {
-                volume = value;
+                _volume = value;
                 OnPropertyChanged("ObsVolume");
             }
         }
@@ -107,9 +104,9 @@ namespace Akuna.PriceMonitor.Model
             AskQty = 0;
             Volume = 0;
 
-            stopwatch = new Stopwatch();
+            _stopwatch = new Stopwatch();
             RefreshPeriod = refreshPeriod;
-            stopwatch.Start();
+            _stopwatch.Start();
         }
         #endregion
 
@@ -118,9 +115,9 @@ namespace Akuna.PriceMonitor.Model
             return (newValue > holdValue) ? 1 : (newValue < holdValue) ? -1 : 0;
         }
 
-        internal void UpdatePrices(IPrices newPrices)
+        public void UpdatePrices(IPrices newPrices)
         {
-            if (stopwatch.Elapsed > RefreshPeriod)
+            if (_stopwatch.Elapsed > RefreshPeriod)
             {
                 DeltaBidPx = ComputeDelta(BidPx, newPrices.BidPx);
                 DeltaAskPx = ComputeDelta(AskPx, newPrices.AskPx);
@@ -131,11 +128,11 @@ namespace Akuna.PriceMonitor.Model
                 AskQty = newPrices.AskQty;
                 Volume = newPrices.Volume;
 
-                stopwatch.Restart();
+                _stopwatch.Restart();
             }
         }
 
-        internal void UpdatePrices(Order newOrder)
+        public void UpdatePrices(Order newOrder)
         {
             if (newOrder.Side == Order.SideType.ask)
             {
@@ -153,7 +150,7 @@ namespace Akuna.PriceMonitor.Model
             Volume += (uint)newOrder.Quantity;
         }
 
-        internal void ResetData()
+        public void ResetData()
         {
             BidPx = 0;
             BidQty = 0;
@@ -168,10 +165,7 @@ namespace Akuna.PriceMonitor.Model
         public event PropertyChangedEventHandler PropertyChanged;
         private void OnPropertyChanged(string propertyName)
         {
-            if (PropertyChanged != null)
-            {
-                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-            }
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
         #endregion
     }

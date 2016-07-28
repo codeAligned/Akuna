@@ -3,3 +3,8 @@
 ################################################################################
 
 /Akuna.PriceTestDriver/obj/x86/Debug
+/Akuna.PriceMonitor/bin/Debug
+/.vs/Akuna.Price/v14
+/Akuna.PriceMonitor/obj/Debug
+/Akuna.PriceService/bin/Debug
+/Akuna.PriceService/obj/Debug
